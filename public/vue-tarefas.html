@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciador de Tarefas - Vue.js</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <nav>
+        <div class="nav-brand">
+          <a href="/vue" class="logo">Gerenciador de Tarefas</a>
+          <span class="nav-sub">Interface Vue.js (Unidade 4)</span>
+        </div>
+        <div class="nav-links">
+          <a href="/" class="nav-item">Interface EJS</a>
+          <a href="/vue" class="nav-item active" style="color: #10b981; font-weight: 600;">Interface Vue.js</a>
+          <span v-if="usuario" class="user-greeting">
+            Olá, <strong>{{ usuario.nome }}</strong>
+            <span :class="['badge', usuario.perfil === 'admin' ? 'badge-admin' : 'badge-user']">
+              {{ usuario.perfil }}
+            </span>
+          </span>
+          <a href="/logout" class="btn btn-sm btn-logout">Sair</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <div v-if="erro" class="alert alert-danger" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>{{ erro }}</span>
+        <button @click="erro = null" style="background: none; border: none; font-size: 1.25rem; cursor: pointer; color: inherit;">&times;</button>
+      </div>
+
+      <div class="card" style="margin-bottom: 2rem;">
+        <h2 style="margin-bottom: 0.5rem;">Boas-vindas ao Gerenciador de Tarefas</h2>
+        <p v-if="usuario" style="color: var(--text-muted);">
+          Bem-vindo(a), <strong>{{ usuario.nome }}</strong>! Gerencie suas atividades com reatividade em tempo real.
+        </p>
+      </div>
+
+      <div class="card" style="margin-bottom: 2rem;">
+        <h3>Cadastrar Nova Tarefa</h3>
+        <form @submit.prevent="cadastrarTarefa" style="margin-top: 1rem;">
+          <div class="form-group">
+            <label for="titulo">Título da Tarefa:</label>
+            <input type="text" id="titulo" v-model="novaTarefa.titulo" placeholder="Ex: Estudar Vue.js e reatividade" required>
+          </div>
+          <div class="form-group">
+            <label for="descricao">Descrição (opcional):</label>
+            <textarea id="descricao" v-model="novaTarefa.descricao" rows="3" placeholder="Detalhes adicionais da tarefa"></textarea>
+          </div>
+          <button type="submit" class="btn" :disabled="salvando">
+            {{ salvando ? 'Salvando...' : 'Adicionar Tarefa' }}
+          </button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3>Suas Tarefas</h3>
+          <span v-if="!carregando" class="badge" style="background: #e2e8f0; color: #334155;">
+            {{ tarefas.length }} {{ tarefas.length === 1 ? 'tarefa' : 'tarefas' }}
+          </span>
+        </div>
+
+        <div v-if="carregando" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+          <p>Carregando tarefas...</p>
+        </div>
+
+        <div v-if="!carregando && tarefas.length === 0" class="empty-state" style="text-align: center; padding: 2.5rem; color: var(--text-muted); border: 2px dashed #cbd5e1; border-radius: 8px;">
+          <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">Nenhuma tarefa encontrada.</p>
+          <p style="font-size: 0.9rem;">Utilize o formulário acima para cadastrar a sua primeira tarefa!</p>
+        </div>
+
+        <div v-if="!carregando && tarefas.length > 0" class="tarefas-lista">
+          <div v-for="tarefa in tarefas" :key="tarefa.id" class="tarefa-item" :class="{ 'tarefa-concluida': tarefa.concluida }">
+            <div class="tarefa-info">
+              <h4 :style="{ textDecoration: tarefa.concluida ? 'line-through' : 'none', color: tarefa.concluida ? '#94a3b8' : '#1e293b' }">
+                {{ tarefa.titulo }}
+              </h4>
+              <p v-if="tarefa.descricao" style="color: var(--text-muted); margin-top: 0.25rem;">
+                {{ tarefa.descricao }}
+              </p>
+              <small style="color: #94a3b8; display: block; margin-top: 0.5rem;">
+                Criada em: {{ formatarData(tarefa.createdAt) }}
+              </small>
+            </div>
+            <div class="tarefa-acoes" style="display: flex; gap: 0.5rem; align-items: center;">
+              <button @click="alternarStatus(tarefa)" class="btn btn-sm" :class="tarefa.concluida ? 'btn-secondary' : 'btn-success'">
+                {{ tarefa.concluida ? 'Reabrir' : 'Concluir' }}
+              </button>
+              <button @click="excluirTarefa(tarefa)" class="btn btn-sm btn-danger">
+                Excluir
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 - Desenvolvimento Web III - Gerenciador de Tarefas</p>
+    </footer>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          usuario: null,
+          tarefas: [],
+          novaTarefa: {
+            titulo: '',
+            descricao: ''
+          },
+          carregando: true,
+          salvando: false,
+          erro: null
+        };
+      },
+      mounted() {
+        this.carregarTarefas();
+      },
+      methods: {
+        async carregarTarefas() {
+          this.carregando = true;
+          this.erro = null;
+          try {
+            const resposta = await fetch('/api/tarefas');
+            if (!resposta.ok) {
+              if (resposta.status === 401) {
+                window.location.href = '/login';
+                return;
+              }
+              throw new Error('Falha ao carregar as tarefas.');
+            }
+            const dados = await resposta.json();
+            this.tarefas = dados.tarefas || [];
+            this.usuario = dados.usuario || null;
+          } catch (err) {
+            this.erro = 'Não foi possível carregar a lista de tarefas. Tente recarregar a página.';
+          } finally {
+            this.carregando = false;
+          }
+        },
+        async cadastrarTarefa() {
+          if (!this.novaTarefa.titulo || this.novaTarefa.titulo.trim() === '') {
+            this.erro = 'O título da tarefa é obrigatório.';
+            return;
+          }
+          this.salvando = true;
+          this.erro = null;
+          try {
+            const resposta = await fetch('/api/tarefas', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                titulo: this.novaTarefa.titulo.trim(),
+                descricao: this.novaTarefa.descricao ? this.novaTarefa.descricao.trim() : ''
+              })
+            });
+            if (!resposta.ok) {
+              const erroJson = await resposta.json().catch(() => ({}));
+              throw new Error(erroJson.erro || 'Falha ao cadastrar a tarefa.');
+            }
+            const tarefaCriada = await resposta.json();
+            this.tarefas.unshift(tarefaCriada);
+            this.novaTarefa.titulo = '';
+            this.novaTarefa.descricao = '';
+          } catch (err) {
+            this.erro = err.message || 'Erro ao cadastrar a tarefa.';
+          } finally {
+            this.salvando = false;
+          }
+        },
+        async alternarStatus(tarefa) {
+          this.erro = null;
+          try {
+            const resposta = await fetch(`/api/tarefas/${tarefa.id}/toggle`, {
+              method: 'POST'
+            });
+            if (!resposta.ok) {
+              throw new Error('Falha ao atualizar o status da tarefa.');
+            }
+            const tarefaAtualizada = await resposta.json();
+            tarefa.concluida = tarefaAtualizada.concluida;
+          } catch (err) {
+            this.erro = 'Não foi possível alterar o status da tarefa.';
+          }
+        },
+        async excluirTarefa(tarefa) {
+          if (!confirm(`Deseja realmente excluir a tarefa "${tarefa.titulo}"?`)) {
+            return;
+          }
+          this.erro = null;
+          try {
+            const resposta = await fetch(`/api/tarefas/${tarefa.id}/delete`, {
+              method: 'POST'
+            });
+            if (!resposta.ok) {
+              throw new Error('Falha ao excluir a tarefa.');
+            }
+            this.tarefas = this.tarefas.filter(t => t.id !== tarefa.id);
+          } catch (err) {
+            this.erro = 'Não foi possível excluir a tarefa.';
+          }
+        },
+        formatarData(dataIso) {
+          if (!dataIso) return '';
+          const data = new Date(dataIso);
+          return data.toLocaleString('pt-BR');
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
