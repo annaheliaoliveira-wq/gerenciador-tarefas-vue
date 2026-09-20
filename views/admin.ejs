@@ -1,0 +1,105 @@
+<%- include('partials/header') %>
+
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1>Painel de Administração</h1>
+      <p>Área restrita de gestão do sistema (Acesso exclusivo para o perfil <strong>admin</strong>).</p>
+    </div>
+    <div>
+      <a href="/" class="btn btn-toggle">Voltar para Minhas Tarefas</a>
+    </div>
+  </div>
+
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-value"><%= metricas.totalUsuarios %></div>
+      <div class="metric-label">Usuários Cadastrados</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value"><%= metricas.totalTarefas %></div>
+      <div class="metric-label">Total de Tarefas</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" style="color: var(--success);"><%= metricas.tarefasConcluidas %></div>
+      <div class="metric-label">Tarefas Concluídas</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value" style="color: #d97706;"><%= metricas.tarefasPendentes %></div>
+      <div class="metric-label">Tarefas Pendentes</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Usuários do Sistema</h2>
+  <div class="table-container">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome</th>
+          <th>E-mail</th>
+          <th>Perfil</th>
+          <th>Tarefas</th>
+          <th>Data de Criação</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% usuarios.forEach(u => { %>
+          <tr>
+            <td>#<%= u.id %></td>
+            <td><strong><%= u.nome %></strong></td>
+            <td><%= u.email %></td>
+            <td>
+              <span class="badge <%= u.perfil === 'admin' ? 'badge-admin' : 'badge-user' %>">
+                <%= u.perfil %>
+              </span>
+            </td>
+            <td><%= u.tarefas ? u.tarefas.length : 0 %></td>
+            <td><%= new Date(u.createdAt).toLocaleDateString('pt-BR') %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Todas as Tarefas Cadastradas no Sistema</h2>
+  <% if (todasTarefas.length === 0) { %>
+    <div class="empty-state">
+      <p>Nenhuma tarefa cadastrada no banco de dados.</p>
+    </div>
+  <% } else { %>
+    <div class="tarefas-lista">
+      <% todasTarefas.forEach(tarefa => { %>
+        <div class="tarefa-item <%= tarefa.concluida ? 'concluida' : '' %>">
+          <div class="tarefa-info">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+              <h3><%= tarefa.titulo %></h3>
+              <span class="badge badge-user" style="font-size: 0.75rem;">
+                Por: <%= tarefa.usuario ? tarefa.usuario.nome : 'Sistema' %>
+              </span>
+            </div>
+            <% if (tarefa.descricao) { %>
+              <p><%= tarefa.descricao %></p>
+            <% } %>
+          </div>
+          <div class="tarefa-acoes">
+            <form action="/tarefas/<%= tarefa.id %>/toggle" method="POST">
+              <button type="submit" class="btn btn-sm <%= tarefa.concluida ? 'btn-toggle-done' : 'btn-toggle' %>">
+                <%= tarefa.concluida ? 'Concluída' : 'Marcar Concluída' %>
+              </button>
+            </form>
+            <form action="/tarefas/<%= tarefa.id %>/delete" method="POST">
+              <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

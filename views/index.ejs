@@ -1,0 +1,69 @@
+<%- include('partials/header') %>
+
+<div class="card">
+  <h1>Nova Tarefa</h1>
+  <p>Cadastre uma nova tarefa para ser gerenciada pelo sistema e persistida no banco de dados.</p>
+
+  <% if (erro) { %>
+    <div class="alert-danger">
+      <%= erro %>
+    </div>
+  <% } %>
+
+  <form action="/tarefas" method="POST">
+    <div class="form-group">
+      <label for="titulo">Título da Tarefa:</label>
+      <input type="text" id="titulo" name="titulo" placeholder="Ex: Estudar Sequelize e ORM" required>
+    </div>
+
+    <div class="form-group">
+      <label for="descricao">Descrição (Opcional):</label>
+      <textarea id="descricao" name="descricao" placeholder="Detalhes adicionais sobre a tarefa..."></textarea>
+    </div>
+
+    <button type="submit" class="btn">Adicionar Tarefa</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Minhas Tarefas</h2>
+
+  <% const todasConcluidas = tarefas.length > 0 && tarefas.every(tarefa => tarefa.concluida); %>
+
+  <% if (todasConcluidas) { %>
+    <div class="banner-sucesso">
+      <span>Todas as tarefas concluídas</span>
+    </div>
+  <% } %>
+
+  <% if (tarefas.length === 0) { %>
+    <div class="empty-state">
+      <p>Nenhuma tarefa cadastrada no momento.</p>
+    </div>
+  <% } else { %>
+    <div class="tarefas-lista">
+      <% tarefas.forEach(tarefa => { %>
+        <div class="tarefa-item <%= tarefa.concluida ? 'concluida' : '' %>">
+          <div class="tarefa-info">
+            <h3><%= tarefa.titulo %></h3>
+            <% if (tarefa.descricao) { %>
+              <p><%= tarefa.descricao %></p>
+            <% } %>
+          </div>
+          <div class="tarefa-acoes">
+            <form action="/tarefas/<%= tarefa.id %>/toggle" method="POST">
+              <button type="submit" class="btn btn-sm <%= tarefa.concluida ? 'btn-toggle-done' : 'btn-toggle' %>">
+                <%= tarefa.concluida ? 'Concluída' : 'Marcar Concluída' %>
+              </button>
+            </form>
+            <form action="/tarefas/<%= tarefa.id %>/delete" method="POST">
+              <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+            </form>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

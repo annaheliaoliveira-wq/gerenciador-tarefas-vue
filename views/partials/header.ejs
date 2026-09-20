@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerenciador de Tarefas - Desenvolvimento Web III</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <div class="nav-brand">
+        <a href="/" class="logo">Gerenciador de Tarefas</a>
+        <span class="nav-sub">Desenvolvimento Web III</span>
+      </div>
+      <div class="nav-links">
+        <% if (typeof usuario !== 'undefined' && usuario) { %>
+          <a href="/" class="nav-item">Tarefas EJS</a>
+          <a href="/vue" class="nav-item" style="color: #10b981; font-weight: 600;">Interface Vue.js</a>
+          <% if (usuario.perfil === 'admin') { %>
+            <a href="/admin" class="nav-item nav-admin-link">Painel Admin</a>
+          <% } %>
+          <span class="user-greeting">
+            Olá, <strong><%= usuario.nome %></strong>
+            <span class="badge <%= usuario.perfil === 'admin' ? 'badge-admin' : 'badge-user' %>">
+              <%= usuario.perfil %>
+            </span>
+          </span>
+          <a href="/logout" class="btn btn-sm btn-logout">Sair</a>
+        <% } else { %>
+          <a href="/login" class="btn btn-sm">Entrar</a>
+        <% } %>
+      </div>
+    </nav>
+  </header>
+  <main>

@@ -1,0 +1,17 @@
+<%- include('partials/header') %>
+
+<div class="card" style="text-align: center;">
+  <h1 style="font-size: 3rem; color: var(--danger);">500</h1>
+  <h2>Erro Interno do Servidor</h2>
+  <p>Ocorreu uma falha interna ao processar sua solicitação.</p>
+  <% if (typeof erro !== 'undefined' && erro) { %>
+    <p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">
+      <code><%= erro %></code>
+    </p>
+  <% } %>
+  <div style="margin-top: 1.5rem;">
+    <a href="/" class="btn">Voltar para Tarefas</a>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

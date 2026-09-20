@@ -1,0 +1,12 @@
+<%- include('partials/header') %>
+
+<div class="card" style="text-align: center;">
+  <h1 style="font-size: 3rem; color: #d97706;">400</h1>
+  <h2>Requisição Inválida (Bad Request)</h2>
+  <p><%= typeof mensagem !== 'undefined' ? mensagem : 'A requisição enviada possui parâmetros inválidos ou dados ausentes.' %></p>
+  <div style="margin-top: 1.5rem;">
+    <a href="/" class="btn">Voltar para Minhas Tarefas</a>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

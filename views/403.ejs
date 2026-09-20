@@ -1,0 +1,17 @@
+<%- include('partials/header') %>
+
+<div class="card" style="text-align: center;">
+  <h1 style="font-size: 3rem; color: var(--danger);">403</h1>
+  <h2>Acesso Proibido (Forbidden)</h2>
+  <p>Você não tem permissão para acessar o recurso em <code><%= rota %></code>.</p>
+  <% if (typeof perfilAtual !== 'undefined' && typeof perfilRequerido !== 'undefined') { %>
+    <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+      Seu perfil atual é <strong><%= perfilAtual %></strong>, mas esta rota exige perfil <strong><%= perfilRequerido %></strong>.
+    </p>
+  <% } %>
+  <div style="margin-top: 1.5rem;">
+    <a href="/" class="btn">Voltar para Minhas Tarefas</a>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
