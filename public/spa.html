@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPA - Gerenciador de Tarefas</title>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/vue-router@4"></script>
+</head>
+<body>
+  <div id="app">
+    <h1>Gerenciador de Tarefas - SPA</h1>
+
+    <nav>
+      <a href="#/">Inicial</a> |
+      <a href="#/detalhes">Detalhes</a> |
+      <a href="#/login">Login</a> |
+      <a href="#/admin">Admin</a> |
+      <a href="#/autor">Autor</a>
+    </nav>
+
+    <hr>
+
+    <router-view></router-view>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+    const { createRouter, createWebHashHistory } = VueRouter;
+
+    const Inicial = {
+      template: '<h2>Página Inicial</h2><p>Bem-vindo à SPA!</p>'
+    };
+
+    const Detalhes = {
+      template: '<h2>Detalhes</h2><p>Detalhes do projeto.</p>'
+    };
+
+    const Login = {
+      template: '<h2>Login</h2><p>Página de login da SPA.</p>'
+    };
+
+    const Admin = {
+      template: `
+        <section>
+          <h2>Administração</h2>
+          <nav>
+            <a href="#/admin/objeto">Objeto</a> |
+            <a href="#/admin/usuarios">Usuários</a>
+          </nav>
+          <router-view></router-view>
+        </section>
+      `
+    };
+
+    const Objeto = {
+      template: '<h3>Objeto</h3><p>Página de administração de objetos.</p>'
+    };
+
+    const Usuarios = {
+      template: '<h3>Usuários</h3><p>Página de administração de usuários.</p>'
+    };
+
+    const Autor = {
+      template: '<h2>Autor</h2><p>Informações sobre o autor do projeto.</p>'
+    };
+
+    const rotas = [
+      { path: '/', component: Inicial },
+      { path: '/detalhes', component: Detalhes },
+      { path: '/login', component: Login },
+      {
+        path: '/admin',
+        component: Admin,
+        children: [
+          { path: 'objeto', component: Objeto },
+          { path: 'usuarios', component: Usuarios }
+        ]
+      },
+      { path: '/autor', component: Autor }
+    ];
+
+    const router = createRouter({
+      history: createWebHashHistory(),
+      routes: rotas
+    });
+
+    createApp({}).use(router).mount('#app');
+  </script>
+</body>
+</html>
