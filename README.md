@@ -80,3 +80,52 @@ O sistema cria automaticamente os seguintes usuários no banco SQLite ao ser ini
   - `POST /api/tarefas/:id/delete` - Remove a tarefa do banco de dados.
 - **Painel Administrativo:**
   - `GET /admin` - Painel de métricas e listagem global restrito para administradores (403 para usuários comuns).
+---
+
+## 🧭 Unidade 6: Aplicação de Página Única (SPA)
+
+Nesta unidade, o projeto Gerenciador de Tarefas foi ampliado com uma interface de navegação baseada em Vue.js 3 e Vue Router 4, seguindo a proposta de desenvolver uma Single Page Application (SPA).
+
+### 📋 Rotas definidas
+
+A interface SPA foi organizada com as seguintes páginas:
+
+- **Inicial:** página inicial da aplicação.
+- **Detalhes:** página com informações sobre o projeto.
+- **Login:** página de acesso demonstrativa.
+- **Admin:** área administrativa com as páginas filhas:
+  - **Objeto**
+  - **Usuários**
+- **Autor:** página com informações sobre o autor do projeto.
+
+### 🛠️ Tecnologias utilizadas nesta etapa
+
+- **Vue.js 3:** criação da interface.
+- **Vue Router 4:** configuração da navegação entre as páginas.
+- **HTML:** estrutura da interface.
+- **Git e GitHub:** controle de versão e compartilhamento do código.
+
+### 🔀 Processo de desenvolvimento
+
+1. Criação da branch `spa` no repositório existente.
+2. Criação do arquivo `public/spa.html`.
+3. Configuração das rotas e dos links de navegação.
+4. Teste da navegação no navegador.
+5. Registro das alterações em um commit.
+6. Envio da branch `spa` para o GitHub.
+7. Mesclagem da branch `spa` com a branch principal `main`.
+8. Envio da `main` atualizada para o GitHub.
+
+### ▶️ Como acessar a SPA
+
+Com o servidor do projeto em execução, acesse:
+
+`http://localhost:3000/spa.html`
+
+A navegação entre as páginas é feita por meio dos links da interface, utilizando o modo hash do Vue Router.
+
+### ✅ Resultado
+
+Foi criada uma interface SPA com as rotas solicitadas na atividade, e as alterações foram mescladas à branch principal do repositório.
+
+**Repositório:** https://github.com/annaheliaoliveira-wq/gerenciador-tarefas-vue
