@@ -125,4 +125,10 @@ GitHub: https://github.com/annaheliaoliveira-wq/gerenciador-tarefas-vue
 
 ## Autor
 
-Projeto acadêmico desenvolvido para a disciplina de Desenvolvimento Web III.
+**Anna Hélia de Sousa Oliveira**
+
+Estudante de Informática para Internet no Instituto Federal do Ceará (IFCE) — Campus Limoeiro do Norte.
+
+- Ensino Médio completo — Escola Agrotécnica Federal de Iguatu – CE (2026).
+- Técnico em Informática para Internet — IFCE, Campus Limoeiro do Norte (em andamento).
+
