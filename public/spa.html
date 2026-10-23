@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <script src="https://unpkg.com/vue-router@4"></script>
 </head>
+
 <body>
   <div id="app">
     <h1>Gerenciador de Tarefas - SPA</h1>
@@ -29,38 +31,797 @@
     const { createApp } = Vue;
     const { createRouter, createWebHashHistory } = VueRouter;
 
-    const Inicial = {
-      template: '<h2>Página Inicial</h2><p>Bem-vindo à SPA!</p>'
+    
+const Inicial = {
+  data() {
+    return {
+      tarefas: [],
+      titulo: '',
+      descricao: '',
+      erro: '',
+      mensagem: '',
+      carregando: false
     };
+  },
+
+  template: `
+    <section>
+      <h2>Minhas tarefas</h2>
+
+      <p>Bem-vindo! Aqui você pode gerenciar suas próprias tarefas.</p>
+
+      <form @submit.prevent="cadastrarTarefa">
+        <div>
+          <label for="tituloMinhaTarefa">Título:</label>
+          <input
+            id="tituloMinhaTarefa"
+            v-model="titulo"
+            required
+            maxlength="200"
+            placeholder="Digite o título da tarefa"
+          >
+        </div>
+
+        <div>
+          <label for="descricaoMinhaTarefa">Descrição:</label>
+          <textarea
+            id="descricaoMinhaTarefa"
+            v-model="descricao"
+            placeholder="Descreva a tarefa"
+          ></textarea>
+        </div>
+
+        <button type="submit" :disabled="carregando">
+          Cadastrar tarefa
+        </button>
+      </form>
+
+      <p v-if="mensagem" style="color: green">{{ mensagem }}</p>
+      <p v-if="erro" style="color: red">{{ erro }}</p>
+
+      <button @click="listarTarefas" :disabled="carregando">
+        Atualizar lista
+      </button>
+
+      <p v-if="!carregando && !erro && tarefas.length === 0">
+        Você ainda não possui tarefas cadastradas.
+      </p>
+
+      <table v-if="tarefas.length > 0" border="1" cellpadding="8">
+        <thead>
+  <tr>
+    <th>Título</th>
+    <th>Descrição</th>
+    <th>Status</th>
+    <th>Ações</th>
+  </tr>
+</thead>
+        <tbody>
+          <tr v-for="tarefa in tarefas" :key="tarefa.id">
+            <td>{{ tarefa.titulo }}</td>
+            <td>{{ tarefa.descricao || 'Sem descrição' }}</td>
+            <td>{{ tarefa.concluida ? 'Concluída' : 'Pendente' }}</td>
+            <td>
+  <button @click="alternarStatus(tarefa)">
+    {{ tarefa.concluida ? 'Marcar como pendente' : 'Marcar como concluída' }}
+  </button>
+
+  <button @click="excluirTarefa(tarefa)">
+    Excluir
+  </button>
+</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>
+        <button @click="sair">Sair</button>
+      </p>
+    </section>
+  `,
+
+  methods: {
+    async listarTarefas() {
+      this.carregando = true;
+      this.erro = '';
+
+      try {
+        const token = sessionStorage.getItem('token');
+
+        const resposta = await fetch('/api/minhas-tarefas', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+          throw new Error(dados.erro || 'Não foi possível carregar as tarefas.');
+        }
+
+        this.tarefas = dados.tarefas;
+      } catch (erro) {
+        this.erro = erro.message;
+      } finally {
+        this.carregando = false;
+      }
+    },
+
+    async cadastrarTarefa() {
+      this.erro = '';
+      this.mensagem = '';
+
+      try {
+        const token = sessionStorage.getItem('token');
+
+        const resposta = await fetch('/api/minhas-tarefas', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify({
+            titulo: this.titulo,
+            descricao: this.descricao
+          })
+        });
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+          throw new Error(dados.erro || 'Não foi possível cadastrar a tarefa.');
+        }
+
+        this.titulo = '';
+        this.descricao = '';
+        this.mensagem = 'Tarefa cadastrada com sucesso.';
+
+        await this.listarTarefas();
+      } catch (erro) {
+        this.erro = erro.message;
+      }
+    },
+
+async alternarStatus(tarefa) {
+  this.erro = '';
+  this.mensagem = '';
+
+  try {
+    const token = sessionStorage.getItem('token');
+
+    const resposta = await fetch(
+      `/api/minhas-tarefas/${tarefa.id}/toggle`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      }
+    );
+
+    const dados = await resposta.json();
+
+    if (!resposta.ok) {
+      throw new Error(dados.erro || 'Não foi possível alterar o status.');
+    }
+
+    this.mensagem = 'Status atualizado com sucesso.';
+    await this.listarTarefas();
+  } catch (erro) {
+    this.erro = erro.message;
+  }
+},
+
+    async excluirTarefa(tarefa) {
+      const confirmar = window.confirm(
+        `Tem certeza de que deseja excluir a tarefa "${tarefa.titulo}"?`
+      );
+
+      if (!confirmar) {
+        return;
+      }
+
+      this.erro = '';
+      this.mensagem = '';
+
+      try {
+        const token = sessionStorage.getItem('token');
+
+        const resposta = await fetch(
+          `/api/minhas-tarefas/${tarefa.id}`,
+          {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/json'
+            }
+          }
+        );
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+          throw new Error(
+            dados.erro || 'Não foi possível excluir a tarefa.'
+          );
+        }
+
+        this.mensagem = dados.mensagem;
+        await this.listarTarefas();
+      } catch (erro) {
+        this.erro = erro.message;
+      }
+    },
+
+    sair() {
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('usuario');
+      this.$router.push('/login');
+    }
+  },
+
+  mounted() {
+    this.listarTarefas();
+  }
+};
 
     const Detalhes = {
       template: '<h2>Detalhes</h2><p>Detalhes do projeto.</p>'
     };
 
     const Login = {
-      template: '<h2>Login</h2><p>Página de login da SPA.</p>'
+
+      data() {
+        return {
+          email: '',
+          senha: '',
+          erro: '',
+          carregando: false,
+          editandoId: null,
+          concluida: false,
+        };
+      },
+
+      template: `
+    <section>
+      <h2>Login</h2>
+
+      <form @submit.prevent="entrar">
+        <div>
+          <label for="email">E-mail:</label>
+          <input
+            id="email"
+            type="email"
+            v-model="email"
+            required
+          >
+        </div>
+
+        <div>
+          <label for="senha">Senha:</label>
+          <input
+            id="senha"
+            type="password"
+            v-model="senha"
+            required
+          >
+        </div>
+
+        <button type="submit" :disabled="carregando">
+          {{ carregando ? 'Entrando...' : 'Entrar' }}
+        </button>
+      </form>
+
+      <p v-if="erro" style="color: red">{{ erro }}</p>
+    </section>
+  `,
+
+      methods: {
+        async entrar() {
+          this.erro = '';
+          this.carregando = true;
+
+          try {
+            const resposta = await fetch('/login', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                email: this.email,
+                senha: this.senha
+              })
+            });
+
+            const dados = await resposta.json();
+
+            if (!resposta.ok) {
+              throw new Error(dados.erro || dados.mensagem || 'Falha no login.');
+            }
+
+            sessionStorage.setItem('token', dados.token);
+            sessionStorage.setItem(
+              'usuario',
+              JSON.stringify(dados.usuario)
+            );
+
+            if (dados.usuario.perfil === 'admin') {
+  this.$router.push('/admin');
+} else {
+  this.$router.push('/');
+}
+          } catch (erro) {
+            this.erro = erro.message || 'Não foi possível conectar ao servidor.';
+          } finally {
+            this.carregando = false;
+          }
+        }
+      }
     };
+
+
 
     const Admin = {
       template: `
-        <section>
-          <h2>Administração</h2>
-          <nav>
-            <a href="#/admin/objeto">Objeto</a> |
-            <a href="#/admin/usuarios">Usuários</a>
-          </nav>
-          <router-view></router-view>
-        </section>
-      `
+    <section>
+      <h2>Administração</h2>
+
+      <p>Bem-vindo à área administrativa!</p>
+
+      <nav>
+        <a href="#/admin/objeto">Tarefas</a> |
+        <a href="#/admin/usuarios">Usuários</a>
+      </nav>
+
+      <p>
+        <button @click="sair">Sair</button>
+      </p>
+
+      <router-view></router-view>
+    </section>
+  `,
+
+      methods: {
+        sair() {
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('usuario');
+          this.$router.push('/login');
+        }
+      }
     };
 
-    const Objeto = {
-      template: '<h3>Objeto</h3><p>Página de administração de objetos.</p>'
-    };
 
-    const Usuarios = {
-      template: '<h3>Usuários</h3><p>Página de administração de usuários.</p>'
+    
+
+const Objeto = {
+  data() {
+    return {
+      tarefas: [],
+      titulo: '',
+      descricao: '',
+      erro: '',
+      mensagem: '',
+      carregando: false,
+      editandoId: null,
+      concluida: false
     };
+  },
+
+
+  template: `
+    <section>
+      <h3>Gerenciamento de tarefas</h3>
+
+<form @submit.prevent="cadastrarTarefa">
+  <div>
+    <label for="titulo">Título:</label>
+    <input
+      id="titulo"
+      v-model="titulo"
+      required
+      maxlength="200"
+      placeholder="Digite o título da tarefa"
+    >
+  </div>
+
+  <div>
+    <label for="descricao">Descrição:</label>
+    <textarea
+      id="descricao"
+      v-model="descricao"
+      placeholder="Digite a descrição da tarefa"
+    ></textarea>
+  </div>
+  <div>
+  <label>
+    <input type="checkbox" v-model="concluida">
+    Tarefa concluída
+  </label>
+</div>
+
+<button type="submit">
+  {{ editandoId ? 'Salvar alterações' : 'Cadastrar tarefa' }}
+</button>
+
+<button
+  v-if="editandoId"
+  type="button"
+  @click="cancelarEdicao"
+>
+  Cancelar edição
+</button>
+</form>
+
+<p v-if="mensagem" style="color: green">{{ mensagem }}</p>
+
+
+      <button @click="listarTarefas" :disabled="carregando">
+        {{ carregando ? 'Carregando...' : 'Atualizar lista' }}
+      </button>
+
+      <p v-if="erro" style="color: red">{{ erro }}</p>
+
+      <p v-if="!carregando && !erro && tarefas.length === 0">
+        Nenhuma tarefa cadastrada.
+      </p>
+
+      <table v-if="tarefas.length > 0" border="1" cellpadding="8">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Título</th>
+            <th>Descrição</th>
+            <th>Concluída</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr v-for="tarefa in tarefas" :key="tarefa.id">
+            <td>{{ tarefa.id }}</td>
+            <td>{{ tarefa.titulo }}</td>
+            <td>{{ tarefa.descricao || 'Sem descrição' }}</td>
+            <td>{{ tarefa.concluida ? 'Sim' : 'Não' }}</td>
+            
+<td>
+  <button @click="editarTarefa(tarefa)">
+    Editar
+  </button>
+
+  <button @click="excluirTarefa(tarefa.id)">
+    Excluir
+  </button>
+</td>
+
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  `,
+
+methods: {
+  async cadastrarTarefa() {
+    this.erro = '';
+    this.mensagem = '';
+
+    try {
+      const token = sessionStorage.getItem('token');
+     const editando = this.editandoId != null;
+
+      console.log('ID em edição:', this.editandoId);
+console.log('Está editando?', editando);
+
+      const url = editando
+        ? `/api/admin/tarefas/${this.editandoId}`
+        : '/api/admin/tarefas';
+
+      const resposta = await fetch(url, {
+        method: editando ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          titulo: this.titulo,
+          descricao: this.descricao,
+          concluida: this.concluida
+        })
+      });
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok) {
+        throw new Error(
+          dados.erro || 'Não foi possível salvar a tarefa.'
+        );
+      }
+
+      this.mensagem = dados.mensagem;
+      this.cancelarEdicao();
+
+      await this.listarTarefas();
+    } catch (erro) {
+      this.erro = erro.message;
+    }
+  },
+
+  editarTarefa(tarefa) {
+    this.editandoId = tarefa.id;
+    this.titulo = tarefa.titulo;
+    this.descricao = tarefa.descricao || '';
+    this.concluida = tarefa.concluida;
+    this.erro = '';
+    this.mensagem = '';
+  },
+
+  cancelarEdicao() {
+    this.editandoId = null;
+    this.titulo = '';
+    this.descricao = '';
+    this.concluida = false;
+    this.erro = '';
+    this.mensagem = '';
+  },
+
+  async excluirTarefa(id) {
+    const confirmar = window.confirm(
+      'Tem certeza de que deseja excluir esta tarefa?'
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    this.erro = '';
+    this.mensagem = '';
+
+    try {
+      const token = sessionStorage.getItem('token');
+
+      const resposta = await fetch(`/api/admin/tarefas/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok) {
+        throw new Error(
+          dados.erro || 'Não foi possível excluir a tarefa.'
+        );
+      }
+
+      this.mensagem = dados.mensagem;
+
+      await this.listarTarefas();
+    } catch (erro) {
+      this.erro = erro.message;
+    }
+  },
+
+  async listarTarefas() {
+    this.carregando = true;
+    this.erro = '';
+
+    try {
+      const token = sessionStorage.getItem('token');
+
+      const resposta = await fetch('/api/admin/tarefas', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+
+      const dados = await resposta.json();
+
+      if (!resposta.ok) {
+        throw new Error(
+          dados.erro || 'Não foi possível carregar as tarefas.'
+        );
+      }
+
+      this.tarefas = dados.tarefas;
+    } catch (erro) {
+      this.erro = erro.message;
+    } finally {
+      this.carregando = false;
+    }
+  }
+},
+
+  mounted() {
+    this.listarTarefas();
+  }
+};
+
+   
+const Usuarios = {
+  
+data() {
+  return {
+    usuarios: [],
+    erro: '',
+    carregando: false,
+    nome: '',
+    email: '',
+    senha: '',
+    perfil: 'user',
+    mensagem: ''
+  };
+},
+
+  template: `
+    <section>
+      <h3>Gerenciamento de usuários</h3>
+
+<h4>Cadastrar novo usuário</h4>
+
+<form @submit.prevent="cadastrarUsuario">
+  <div>
+    <label for="nomeUsuario">Nome:</label>
+    <input
+      id="nomeUsuario"
+      v-model="nome"
+      type="text"
+      required
+    >
+  </div>
+
+  <div>
+    <label for="emailUsuario">E-mail:</label>
+    <input
+      id="emailUsuario"
+      v-model="email"
+      type="email"
+      required
+    >
+  </div>
+
+  <div>
+    <label for="senhaUsuario">Senha:</label>
+    <input
+      id="senhaUsuario"
+      v-model="senha"
+      type="password"
+      required
+    >
+  </div>
+
+  <div>
+    <label for="perfilUsuario">Perfil:</label>
+    <select id="perfilUsuario" v-model="perfil">
+      <option value="user">Usuário comum</option>
+      <option value="admin">Administrador</option>
+    </select>
+  </div>
+
+  <button type="submit">Cadastrar usuário</button>
+</form>
+
+<p v-if="mensagem" style="color: green">{{ mensagem }}</p>
+<p v-if="erro" style="color: red">{{ erro }}</p>
+
+
+      <button @click="listarUsuarios" :disabled="carregando">
+        {{ carregando ? 'Carregando...' : 'Atualizar lista' }}
+      </button>
+
+      <p v-if="!carregando && !erro && usuarios.length === 0">
+        Nenhum usuário encontrado.
+      </p>
+
+      <table v-if="usuarios.length > 0" border="1" cellpadding="8">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>Perfil</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr v-for="usuario in usuarios" :key="usuario.id">
+            <td>{{ usuario.id }}</td>
+            <td>{{ usuario.nome }}</td>
+            <td>{{ usuario.email }}</td>
+            <td>{{ usuario.perfil }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  `,
+
+  methods: {
+
+async cadastrarUsuario() {
+  this.erro = '';
+  this.mensagem = '';
+
+  try {
+    const token = sessionStorage.getItem('token');
+
+    const resposta = await fetch('/api/admin/usuarios', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        nome: this.nome,
+        email: this.email,
+        senha: this.senha,
+        perfil: this.perfil
+      })
+    });
+
+    const dados = await resposta.json();
+
+    if (!resposta.ok) {
+      throw new Error(
+        dados.erro || 'Não foi possível cadastrar o usuário.'
+      );
+    }
+
+    this.mensagem = dados.mensagem;
+    this.nome = '';
+    this.email = '';
+    this.senha = '';
+    this.perfil = 'user';
+
+    await this.listarUsuarios();
+  } catch (erro) {
+    this.erro = erro.message;
+  }
+},
+
+    async listarUsuarios() {
+      this.carregando = true;
+      this.erro = '';
+
+      try {
+        const token = sessionStorage.getItem('token');
+
+        const resposta = await fetch('/api/admin/usuarios', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) {
+          throw new Error(
+            dados.erro || 'Não foi possível carregar os usuários.'
+          );
+        }
+
+        this.usuarios = dados.usuarios;
+      } catch (erro) {
+        this.erro = erro.message;
+      } finally {
+        this.carregando = false;
+      }
+    }
+  },
+
+  mounted() {
+    this.listarUsuarios();
+  }
+};
+
 
     const Autor = {
       template: '<h2>Autor</h2><p>Informações sobre o autor do projeto.</p>'
@@ -86,7 +847,42 @@
       routes: rotas
     });
 
+    // Verifica se o usuário pode acessar a rota
+    router.beforeEach((to) => {
+      const token = sessionStorage.getItem('token');
+      const usuarioSalvo = sessionStorage.getItem('usuario');
+
+      // Se tentar acessar o painel sem token, vai para o login
+      if (to.path.startsWith('/admin') && !token) {
+        return '/login';
+      }
+
+      // Verifica se o usuário salvo possui perfil de administrador
+      if (to.path.startsWith('/admin') && token) {
+        try {
+          const usuario = JSON.parse(usuarioSalvo);
+
+          if (!usuario || usuario.perfil !== 'admin') {
+            return '/login';
+          }
+        } catch (erro) {
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('usuario');
+          return '/login';
+        }
+      }
+
+      // Se já estiver autenticado, não precisa voltar ao login
+      if (to.path === '/login' && token) {
+        return '/admin';
+      }
+
+      return true;
+    });
+
     createApp({}).use(router).mount('#app');
+
   </script>
 </body>
+
 </html>
