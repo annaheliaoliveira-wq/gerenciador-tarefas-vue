@@ -1,131 +1,128 @@
-# Gerenciador de Tarefas (Vue.js) - Desenvolvimento Web III
+# Gerenciador de Tarefas (Vue.js) — Desenvolvimento Web III
 
-Projeto web desenvolvido para a disciplina de **Desenvolvimento Web III**, evoluído para a **Unidade 4: Primeira interface Vue para o Gerenciador de Tarefas**.
+Projeto desenvolvido durante a disciplina de Desenvolvimento Web III, utilizando Node.js, Express, Vue.js e banco de dados SQLite. O sistema permite o gerenciamento de tarefas, autenticação de usuários e integração entre o cliente e o servidor por meio de uma API REST.
 
----
+## Tecnologias utilizadas
 
-## 🚀 Tecnologias Utilizadas
+- Node.js
+- Express
+- Vue.js 3
+- Vue Router 4
+- JavaScript
+- HTML5 e CSS3
+- EJS para renderização de páginas no servidor (SSR)
+- Sequelize ORM
+- SQLite
+- Fetch API
+- API REST
+- JSON Web Token (JWT)
+- sessionStorage
+- express-session
 
-- **Node.js** com **Express.js**
-- **Vue.js 3** (Interface reativa via CDN)
-- **EJS** (Embedded JavaScript Templating)
-- **Sequelize ORM** com **SQLite**
-- **express-session** para gerenciamento de sessões do usuário
-- **Fetch API** para comunicação assíncrona entre o front-end Vue e a API back-end
+## Funcionalidades
 
----
+- Autenticação de usuários.
+- Gerenciamento de tarefas.
+- Listagem e visualização de tarefas.
+- Criação, edição e exclusão de registros, conforme as funcionalidades implementadas.
+- Controle de acesso a funcionalidades administrativas.
+- Navegação entre páginas utilizando Vue.js e Vue Router.
+- Comunicação entre o cliente e o servidor por meio de requisições HTTP.
 
-## 👥 Usuários de Teste para Avaliação
+## Como executar o projeto
 
-O sistema cria automaticamente os seguintes usuários no banco SQLite ao ser iniciado:
+### 1. Pré-requisitos
 
-| Perfil | E-mail | Senha | Permissões |
-| :--- | :--- | :--- | :--- |
-| **Administrador** | `admin@teste.com` | `admin123` | Acesso total, incluindo `/admin` e gerenciamento global |
-| **Usuário Comum** | `user@teste.com` | `user123` | Acesso a `/`, `/vue` e às suas próprias tarefas (bloqueado em `/admin` - 403) |
+É necessário ter o Node.js e o npm instalados no computador.
 
----
+### 2. Clonar o repositório
 
-## 🛠️ Instruções de Execução
+```bash
+git clone https://github.com/annaheliaoliveira-wq/gerenciador-tarefas-vue.git
+```
 
-1. **Instalar dependências:**
-   ```bash
-   npm install
-   ```
+### 3. Acessar a pasta do projeto
 
-2. **Iniciar o servidor:**
-   ```bash
-   npm start
-   ```
+```bash
+cd gerenciador-tarefas-vue
+```
 
-   Ou em modo de desenvolvimento (com reinício automático):
-   ```bash
-   npm run dev
-   ```
+### 4. Instalar as dependências
 
-3. **Acessar a aplicação no navegador:**
-   - Interface EJS: [http://localhost:3000](http://localhost:3000)
-   - Interface Vue.js: [http://localhost:3000/vue](http://localhost:3000/vue)
+```bash
+npm install
+```
 
----
+### 5. Executar o servidor
 
-## 📋 Funcionalidades da Interface Vue (`/vue`)
+```bash
+npm start
+```
 
-- Página `vue-tarefas.html` localizada na pasta `public/` e servida pela rota protegida `/vue`.
-- Mensagem de boas-vindas exibindo o nome do usuário autenticado.
-- Área de carregamento durante a requisição de dados.
-- Listagem dinâmica de tarefas utilizando a diretiva `v-for`.
-- Mensagem condicional com `v-if` quando o usuário não possui tarefas cadastradas.
-- Formulário reativo com `v-model` para título e descrição de novas tarefas.
-- Método assíncrono para carregar as tarefas via Fetch API (`GET /api/tarefas`).
-- Método assíncrono para cadastro de tarefas via Fetch API (`POST /api/tarefas`).
-- Método para alternância imediata do status da tarefa (`POST /api/tarefas/:id/toggle`).
-- Tratamento amigável de erros na interface através de alertas visuais reativos.
+Se o projeto utilizar outro comando definido no `package.json`, execute o comando correspondente.
 
----
+### 6. Acessar a aplicação
 
-## 🛡️ Rotas do Sistema
+Abra o navegador e acesse:
 
-- **Autenticação:**
-  - `GET /login` - Tela de login.
-  - `POST /login` - Validação de credenciais e criação de sessão.
-  - `GET /logout` - Encerramento de sessão.
-- **Interfaces:**
-  - `GET /` - Interface base renderizada com EJS.
-  - `GET /vue` - Interface reativa construída com Vue.js 3 (requer login).
-- **API REST (Consumida pelo Vue.js):**
-  - `GET /api/tarefas` - Retorna a lista de tarefas do usuário conectado em formato JSON.
-  - `POST /api/tarefas` - Cadastra uma nova tarefa no banco de dados.
-  - `POST /api/tarefas/:id/toggle` - Alterna o status de conclusão da tarefa.
-  - `POST /api/tarefas/:id/delete` - Remove a tarefa do banco de dados.
-- **Painel Administrativo:**
-  - `GET /admin` - Painel de métricas e listagem global restrito para administradores (403 para usuários comuns).
----
+- Aplicação: http://localhost:3000
+- Interface Vue: http://localhost:3000/vue
 
-## 🧭 Unidade 6: Aplicação de Página Única (SPA)
+A disponibilidade de cada endereço depende das rotas configuradas no servidor.
 
-Nesta unidade, o projeto Gerenciador de Tarefas foi ampliado com uma interface de navegação baseada em Vue.js 3 e Vue Router 4, seguindo a proposta de desenvolver uma Single Page Application (SPA).
+## Unidade 4 — Desenvolvimento da aplicação
 
-### 📋 Rotas definidas
+Nesta etapa, foram desenvolvidas funcionalidades do sistema de gerenciamento de tarefas, incluindo a estrutura do servidor, o acesso ao banco de dados e a interação com os registros da aplicação.
 
-A interface SPA foi organizada com as seguintes páginas:
+## Unidade 6 — Aplicação de Página Única (SPA)
 
-- **Inicial:** página inicial da aplicação.
-- **Detalhes:** página com informações sobre o projeto.
-- **Login:** página de acesso demonstrativa.
-- **Admin:** área administrativa com as páginas filhas:
-  - **Objeto**
-  - **Usuários**
-- **Autor:** página com informações sobre o autor do projeto.
+Nesta etapa, o projeto começou a utilizar uma Single Page Application (SPA), com Vue.js e Vue Router, permitindo navegar entre páginas sem recarregar toda a aplicação.
 
-### 🛠️ Tecnologias utilizadas nesta etapa
+A estrutura da SPA está no arquivo `public/spa.html`.
 
-- **Vue.js 3:** criação da interface.
-- **Vue Router 4:** configuração da navegação entre as páginas.
-- **HTML:** estrutura da interface.
-- **Git e GitHub:** controle de versão e compartilhamento do código.
+Entre as páginas e funcionalidades previstas no projeto estão:
 
-### 🔀 Processo de desenvolvimento
+- Inicial.
+- Detalhes.
+- Login.
+- Administração de objetos.
+- Administração de usuários.
+- Informações sobre o autor.
 
-1. Criação da branch `spa` no repositório existente.
-2. Criação do arquivo `public/spa.html`.
-3. Configuração das rotas e dos links de navegação.
-4. Teste da navegação no navegador.
-5. Registro das alterações em um commit.
-6. Envio da branch `spa` para o GitHub.
-7. Mesclagem da branch `spa` com a branch principal `main`.
-8. Envio da `main` atualizada para o GitHub.
+## Unidade 7 — Integração do cliente com o servidor
 
-### ▶️ Como acessar a SPA
+Nesta etapa, o cliente foi integrado à API REST do servidor, com autenticação por token JWT e comunicação por meio da Fetch API.
 
-Com o servidor do projeto em execução, acesse:
+### Login e autenticação
 
-`http://localhost:3000/spa.html`
+- Formulário de login integrado ao endpoint `POST /login`.
+- Tratamento de erros de autenticação e exibição de mensagens ao usuário.
+- Armazenamento do token JWT na `sessionStorage` após o login bem-sucedido.
+- Utilização do token nas requisições autenticadas.
+- Redirecionamento para a área administrativa após o login.
 
-A navegação entre as páginas é feita por meio dos links da interface, utilizando o modo hash do Vue Router.
+### Administração
 
-### ✅ Resultado
+A aplicação utiliza uma SPA para organizar a navegação entre as páginas administrativas.
 
-Foi criada uma interface SPA com as rotas solicitadas na atividade, e as alterações foram mescladas à branch principal do repositório.
+As funcionalidades de administração integram o cliente aos endpoints da API REST para gerenciar tarefas e usuários, conforme as operações implementadas no servidor.
 
-**Repositório:** https://github.com/annaheliaoliveira-wq/gerenciador-tarefas-vue
+### Lista de objetos
+
+A atividade também prevê transformar a lista de objetos em uma SPA, com navegação entre páginas de resultados e visualização dos detalhes de cada objeto.
+
+### API REST
+
+A aplicação utiliza endpoints HTTP para autenticação e operações sobre os dados. As rotas administrativas devem respeitar as regras de autenticação e autorização definidas pelo servidor.
+
+### Controle de versão
+
+As alterações da Unidade 7 foram desenvolvidas na branch `integracao` e, posteriormente, mescladas à branch principal `main`.
+
+## Repositório
+
+GitHub: https://github.com/annaheliaoliveira-wq/gerenciador-tarefas-vue
+
+## Autor
+
+Projeto acadêmico desenvolvido para a disciplina de Desenvolvimento Web III.
