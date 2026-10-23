@@ -333,13 +333,76 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get('/autor', (req, res) => {
+  res.render('autor');
+});
+
+
+app.get('/objetos', async (req, res, next) => {
+  try {
+    const pagina = Math.max(1, parseInt(req.query.pagina, 10) || 1);
+    const limite = 5;
+
+    const resultado = await Tarefa.findAndCountAll({
+      limit: limite,
+      offset: (pagina - 1) * limite,
+      order: [['createdAt', 'DESC']]
+    });
+
+    const tarefas = resultado.rows;
+    const totalPaginas = Math.max(
+      1,
+      Math.ceil(resultado.count / limite)
+    );
+
+    if (req.headers.accept?.includes('application/json')) {
+      return res.json({
+        tarefas,
+        pagina,
+        totalPaginas,
+        total: resultado.count
+      });
+    }
+
+    res.render('objetos', {
+      tarefas,
+      pagina,
+      totalPaginas
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+
+app.get('/objetos/:id', async (req, res, next) => {
+  try {
+    const tarefa = await Tarefa.findByPk(req.params.id);
+
+    if (!tarefa) {
+      return res.status(404).render('404', {
+        rota: req.originalUrl
+      });
+    }
+
+    if (req.headers.accept?.includes('application/json')) {
+      return res.json(tarefa);
+    }
+
+    res.render('detalhes', { tarefa });
+  } catch (error) {
+    next(error);
+  }
+});
+
+console.log('Rota /autor registrada');
+
 app.get('/login', (req, res) => {
   if (req.session && req.session.usuario) {
     return res.redirect('/');
   }
   res.render('login', { erro: null });
 });
-
 
 app.post('/login', async (req, res, next) => {
   try {
@@ -564,6 +627,42 @@ app.post('/api/tarefas/:id/delete', requerAutenticacao, async (req, res, next) =
     res.status(500).json({ erro: 'Erro ao excluir tarefa.' });
   }
 });
+
+app.post('/admin/usuarios', requerAutenticacao, autorizarPerfil('admin'), async (req, res, next) => {
+  try {
+    const { nome, email, senha } = req.body;
+
+    if (!nome?.trim() || !email?.trim() || !senha?.trim()) {
+      return res.status(400).send('Preencha nome, e-mail e senha.');
+    }
+
+    const emailNormalizado = email.trim().toLowerCase();
+
+    const existente = await Usuario.findOne({
+      where: { email: emailNormalizado }
+    });
+
+    if (existente) {
+      return res.status(409).send('Já existe um usuário com esse e-mail.');
+    }
+
+    const senhaHash = await bcrypt.hash(senha, 10);
+
+    const novoUsuario = await Usuario.create({
+  nome: nome.trim(),
+  email: emailNormalizado,
+  senha: senhaHash,
+  perfil: 'user'
+});
+
+console.log('Usuário cadastrado:', novoUsuario.id, novoUsuario.email);
+
+return res.redirect('/admin');
+  } catch (error) {
+    next(error);
+  }
+});
+
 
 app.get('/admin', requerAutenticacao, autorizarPerfil('admin'), async (req, res, next) => {
   try {

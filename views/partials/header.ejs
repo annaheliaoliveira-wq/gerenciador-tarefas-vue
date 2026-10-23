@@ -15,6 +15,7 @@
       </div>
       <div class="nav-links">
         <% if (typeof usuario !== 'undefined' && usuario) { %>
+          <a href="/autor" class="nav-item">Sobre a autora</a>
           <a href="/" class="nav-item">Tarefas EJS</a>
           <a href="/vue" class="nav-item" style="color: #10b981; font-weight: 600;">Interface Vue.js</a>
           <% if (usuario.perfil === 'admin') { %>

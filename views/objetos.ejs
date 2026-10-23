@@ -1,0 +1,53 @@
+
+<%- include('partials/header') %>
+
+<section class="card">
+  <h1>Lista de Tarefas</h1>
+  <p>Consulte as tarefas cadastradas no sistema.</p>
+
+  <% if (tarefas.length === 0) { %>
+    <p>Nenhuma tarefa cadastrada.</p>
+  <% } else { %>
+    <div class="tarefas-lista">
+      <% tarefas.forEach(tarefa => { %>
+        <article class="tarefa-item">
+          <div class="tarefa-info">
+            <h2><%= tarefa.titulo %></h2>
+
+            <% if (tarefa.descricao) { %>
+              <p><%= tarefa.descricao %></p>
+            <% } %>
+
+            <p>
+              Status:
+              <%= tarefa.concluida ? 'Concluída' : 'Pendente' %>
+            </p>
+
+            <a href="/objetos/<%= tarefa.id %>">
+              Ver detalhes
+            </a>
+          </div>
+        </article>
+      <% }) %>
+    <% } %>
+
+  <nav aria-label="Paginação">
+    <% if (pagina > 1) { %>
+      <a href="/objetos?pagina=<%= pagina - 1 %>">
+        Página anterior
+      </a>
+    <% } %>
+
+    <span>
+      Página <%= pagina %> de <%= totalPaginas %>
+    </span>
+
+    <% if (pagina < totalPaginas) { %>
+      <a href="/objetos?pagina=<%= pagina + 1 %>">
+        Próxima página
+      </a>
+    <% } %>
+  </nav>
+</section>
+
+<%- include('partials/footer') %>

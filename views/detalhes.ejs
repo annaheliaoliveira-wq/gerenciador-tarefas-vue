@@ -1,0 +1,20 @@
+
+<%- include('partials/header') %>
+
+<section class="card">
+  <h1><%= tarefa.titulo %></h1>
+
+  <p>
+    <strong>Descrição:</strong>
+    <%= tarefa.descricao || 'Sem descrição' %>
+  </p>
+
+  <p>
+    <strong>Status:</strong>
+    <%= tarefa.concluida ? 'Concluída' : 'Pendente' %>
+  </p>
+
+  <a href="/objetos">Voltar para a lista</a>
+</section>
+
+<%- include('partials/footer') %>
